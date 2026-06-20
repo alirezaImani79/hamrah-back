@@ -18,6 +18,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'name', type: 'string', nullable: true, example: 'Jane Doe'),
         new OA\Property(property: 'email', type: 'string', nullable: true, example: 'jane@example.com'),
         new OA\Property(property: 'phone_verified_at', type: 'string', format: 'date-time', nullable: true),
+        new OA\Property(property: 'is_subscribed_to_newsletter', type: 'boolean', example: false),
+        new OA\Property(property: 'newsletter_subscribed_at', type: 'string', format: 'date-time', nullable: true),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
         new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
     ],
@@ -37,6 +39,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone_verified_at' => $this->phone_verified_at,
+            'is_subscribed_to_newsletter' => $this->isSubscribedToNewsletter(),
+            'newsletter_subscribed_at' => $this->newsletter_subscribed_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

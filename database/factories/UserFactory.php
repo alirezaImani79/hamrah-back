@@ -44,4 +44,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the user is subscribed to the SMS newsletter.
+     */
+    public function subscribedToNewsletter(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'newsletter_subscribed_at' => now(),
+        ]);
+    }
 }

@@ -37,6 +37,12 @@ return [
 
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
+
+        'smsir' => [
+            'key' => env('SMSIR_API_KEY'),
+            'line_number' => env('SMSIR_LINE_NUMBER'),
+            'endpoint' => env('SMSIR_ENDPOINT', 'https://api.sms.ir/v1/send/bulk'),
+        ],
     ],
 
 ];
