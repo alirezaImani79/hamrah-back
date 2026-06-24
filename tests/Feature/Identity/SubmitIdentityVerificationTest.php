@@ -28,7 +28,7 @@ function identityPayload(array $overrides = []): array
 
 it('stores the submission, marks the user verifying, and queues the job', function () {
     Queue::fake();
-    Storage::fake('local');
+    Storage::fake(config('identity.disk'));
 
     $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
@@ -48,15 +48,15 @@ it('stores the submission, marks the user verifying, and queues the job', functi
         ->and($user->national_card_image_path)->not->toBeNull()
         ->and($user->face_image_path)->not->toBeNull();
 
-    Storage::disk('local')->assertExists($user->national_card_image_path);
-    Storage::disk('local')->assertExists($user->face_image_path);
+    Storage::disk(config('identity.disk'))->assertExists($user->national_card_image_path);
+    Storage::disk(config('identity.disk'))->assertExists($user->face_image_path);
 
     Queue::assertPushed(VerifyUserIdentity::class, fn (VerifyUserIdentity $job): bool => $job->user->is($user));
 });
 
 it('normalizes Persian digits in the national code', function () {
     Queue::fake();
-    Storage::fake('local');
+    Storage::fake(config('identity.disk'));
 
     $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
@@ -78,7 +78,7 @@ it('requires every identity field', function () {
 });
 
 it('rejects a national code already used by another user', function () {
-    Storage::fake('local');
+    Storage::fake(config('identity.disk'));
 
     User::factory()->create(['national_code' => '0012345678']);
     $user = User::factory()->create();
@@ -92,7 +92,7 @@ it('rejects a national code already used by another user', function () {
 
 it('blocks a new submission while one is already in progress', function () {
     Queue::fake();
-    Storage::fake('local');
+    Storage::fake(config('identity.disk'));
 
     $user = User::factory()->identityVerifying()->create();
     $token = $user->createToken('test')->plainTextToken;
@@ -106,7 +106,7 @@ it('blocks a new submission while one is already in progress', function () {
 
 it('blocks a new submission once the user is verified', function () {
     Queue::fake();
-    Storage::fake('local');
+    Storage::fake(config('identity.disk'));
 
     $user = User::factory()->identityVerified()->create();
     $token = $user->createToken('test')->plainTextToken;

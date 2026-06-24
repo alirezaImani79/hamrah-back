@@ -21,7 +21,7 @@ return [
     'threshold' => (float) env('IDENTITY_VERIFICATION_THRESHOLD', 0.8),
 
     // Filesystem disk used to store the (sensitive) identity documents.
-    'disk' => env('IDENTITY_VERIFICATION_DISK', 'local'),
+    'disk' => env('IDENTITY_VERIFICATION_DISK', 's3'),
 
     // Maximum accepted image upload size, in kilobytes.
     'max_image_kilobytes' => (int) env('IDENTITY_VERIFICATION_MAX_IMAGE_KB', 5120),
