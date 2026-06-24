@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\IdentityVerifier;
 use App\Contracts\SmsSender;
+use App\Services\Identity\OpenAiIdentityVerifier;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\SmsIrSmsSender;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
                 ),
                 default => new LogSmsSender,
             };
+        });
+
+        $this->app->singleton(IdentityVerifier::class, function (): IdentityVerifier {
+            return new OpenAiIdentityVerifier(
+                (string) config('identity.model'),
+                (string) config('identity.disk'),
+            );
         });
     }
 

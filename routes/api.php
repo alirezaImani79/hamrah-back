@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Identity\IdentityVerificationController;
 use App\Http\Controllers\Api\V1\Newsletter\NewsletterController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,5 +20,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [NewsletterController::class, 'status']);
         Route::post('subscribe', [NewsletterController::class, 'subscribe']);
         Route::post('unsubscribe', [NewsletterController::class, 'unsubscribe']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('identity')->group(function () {
+        Route::get('/', [IdentityVerificationController::class, 'status']);
+        Route::post('verify', [IdentityVerificationController::class, 'submit']);
     });
 });
