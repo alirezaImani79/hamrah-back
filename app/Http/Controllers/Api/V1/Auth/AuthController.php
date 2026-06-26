@@ -109,7 +109,7 @@ class AuthController extends Controller
     )]
     public function me(Request $request): JsonResponse
     {
-        return ApiResponse::success(new UserResource($request->user()), 'Authenticated user retrieved.');
+        return ApiResponse::success(new UserResource($request->user()->loadMissing(['province', 'city'])), 'Authenticated user retrieved.');
     }
 
     /**

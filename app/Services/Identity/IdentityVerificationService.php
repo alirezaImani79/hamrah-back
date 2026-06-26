@@ -14,7 +14,7 @@ class IdentityVerificationService
      * Store the submitted identity data and documents, mark the user as
      * "verifying", and queue the automated verification job.
      *
-     * @param  array{first_name: string, last_name: string, national_code: string, birth_date: string, gender: string}  $data
+     * @param  array{first_name: string, last_name: string, national_code: string, birth_date: string, gender: string, province_id: int, city_id: int, address: string}  $data
      */
     public function submit(User $user, array $data, UploadedFile $nationalCardImage, UploadedFile $faceImage): User
     {
@@ -29,6 +29,9 @@ class IdentityVerificationService
             'national_code' => $data['national_code'],
             'birth_date' => $data['birth_date'],
             'gender' => $data['gender'],
+            'province_id' => $data['province_id'],
+            'city_id' => $data['city_id'],
+            'address' => $data['address'],
             'national_card_image_path' => $nationalCardImage->store($directory, $disk),
             'face_image_path' => $faceImage->store($directory, $disk),
             'identity_status' => IdentityVerificationStatus::Verifying,

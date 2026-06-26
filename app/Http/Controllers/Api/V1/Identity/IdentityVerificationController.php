@@ -32,7 +32,7 @@ class IdentityVerificationController extends Controller
     )]
     public function status(Request $request): JsonResponse
     {
-        return ApiResponse::success(new UserResource($request->user()), 'Identity status retrieved.');
+        return ApiResponse::success(new UserResource($request->user()->loadMissing(['province', 'city'])), 'Identity status retrieved.');
     }
 
     /**
@@ -74,11 +74,11 @@ class IdentityVerificationController extends Controller
 
         $user = $this->identity->submit(
             $user,
-            $request->safe()->only(['first_name', 'last_name', 'national_code', 'birth_date', 'gender']),
+            $request->safe()->only(['first_name', 'last_name', 'national_code', 'birth_date', 'gender', 'province_id', 'city_id', 'address']),
             $request->file('national_card_image'),
             $request->file('face_image'),
         );
 
-        return ApiResponse::success(new UserResource($user), 'Identity submitted for verification.', 202);
+        return ApiResponse::success(new UserResource($user->loadMissing(['province', 'city'])), 'Identity submitted for verification.', 202);
     }
 }

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\Gender;
 use App\Enums\IdentityVerificationStatus;
+use App\Models\City;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -62,15 +63,22 @@ class UserFactory extends Factory
      */
     public function withIdentityData(): static
     {
-        return $this->state(fn (array $attributes): array => [
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'national_code' => fake()->unique()->numerify('##########'),
-            'birth_date' => fake()->date(),
-            'gender' => fake()->randomElement(Gender::cases()),
-            'national_card_image_path' => 'identity/card.jpg',
-            'face_image_path' => 'identity/face.jpg',
-        ]);
+        return $this->state(function (array $attributes): array {
+            $city = City::factory()->create();
+
+            return [
+                'first_name' => fake()->firstName(),
+                'last_name' => fake()->lastName(),
+                'national_code' => fake()->unique()->numerify('##########'),
+                'birth_date' => fake()->date(),
+                'gender' => fake()->randomElement(Gender::cases()),
+                'province_id' => $city->province_id,
+                'city_id' => $city->id,
+                'address' => fake()->address(),
+                'national_card_image_path' => 'identity/card.jpg',
+                'face_image_path' => 'identity/face.jpg',
+            ];
+        });
     }
 
     /**
