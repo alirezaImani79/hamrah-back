@@ -77,6 +77,10 @@ class AuthController extends Controller
 
         $user = User::firstOrCreate(['phone_number' => $phoneNumber]);
 
+        // A freshly created record means this is the user's first authentication,
+        // so the client should prompt them to complete identity verification.
+        $isNewUser = $user->wasRecentlyCreated;
+
         if ($user->phone_verified_at === null) {
             $user->forceFill(['phone_verified_at' => now()])->save();
         }
@@ -84,6 +88,7 @@ class AuthController extends Controller
         return ApiResponse::success([
             'token' => $user->createToken('mobile-app')->plainTextToken,
             'token_type' => 'Bearer',
+            'is_new_user' => $isNewUser,
             'user' => new UserResource($user),
         ], 'Authenticated successfully.');
     }

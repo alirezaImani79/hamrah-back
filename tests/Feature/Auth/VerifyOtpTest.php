@@ -15,12 +15,26 @@ it('verifies a valid code, creates the user, and returns a token', function () {
     $response->assertOk()
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.token_type', 'Bearer')
-        ->assertJsonStructure(['data' => ['token', 'token_type', 'user' => ['id', 'phone_number']]]);
+        ->assertJsonPath('data.is_new_user', true)
+        ->assertJsonStructure(['data' => ['token', 'token_type', 'is_new_user', 'user' => ['id', 'phone_number']]]);
 
     $user = User::where('phone_number', $phone)->sole();
 
     expect($user->phone_verified_at)->not->toBeNull()
         ->and($user->tokens()->count())->toBe(1);
+});
+
+it('flags an existing user as not new on subsequent logins', function () {
+    $phone = '+15551234567';
+    User::factory()->create(['phone_number' => $phone]);
+    OtpCode::factory()->forCode('123456')->create(['phone_number' => $phone]);
+
+    $this->postJson('/api/v1/auth/otp/verify', [
+        'phone_number' => $phone,
+        'code' => '123456',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.is_new_user', false);
 });
 
 it('rejects a wrong code', function () {

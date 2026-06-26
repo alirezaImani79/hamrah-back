@@ -62,6 +62,12 @@ use OpenApi\Attributes as OA;
             properties: [
                 new OA\Property(property: 'token', type: 'string', example: '1|AbCdEf0123456789...'),
                 new OA\Property(property: 'token_type', type: 'string', example: 'Bearer'),
+                new OA\Property(
+                    property: 'is_new_user',
+                    type: 'boolean',
+                    description: 'True when this OTP verification registered a brand-new user, signalling the client to show the identity completion flow.',
+                    example: false,
+                ),
                 new OA\Property(property: 'user', ref: '#/components/schemas/User'),
             ],
         ),
