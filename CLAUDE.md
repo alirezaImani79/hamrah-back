@@ -196,3 +196,8 @@ This is a JSON-only REST API backend. The following conventions are mandatory fo
 ## Testing
 
 - Cover new endpoints with Pest feature tests, including the JSON-envelope error paths. Feature tests use `LazilyRefreshDatabase` (configured in `tests/Pest.php`) against sqlite `:memory:`.
+
+# Git Workflow
+
+- Work directly on the `master` branch. Do NOT create a new branch for changes — apply and commit changes on `master`, even though it is the default branch.
+- Still commit or push only when the user explicitly asks.

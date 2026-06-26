@@ -167,3 +167,8 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+# Git Workflow
+
+- Work directly on the `master` branch. Do NOT create a new branch for changes — apply and commit changes on `master`, even though it is the default branch.
+- Still commit or push only when the user explicitly asks.
