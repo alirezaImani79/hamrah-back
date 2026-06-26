@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -26,6 +27,9 @@ use Laravel\Sanctum\HasApiTokens;
     'national_code',
     'birth_date',
     'gender',
+    'province_id',
+    'city_id',
+    'address',
     'national_card_image_path',
     'face_image_path',
     'identity_status',
@@ -86,6 +90,26 @@ class User extends Authenticatable
         $reason = $this->identity_verification_result['reason'] ?? null;
 
         return $reason !== null && $reason !== '' ? (string) $reason : null;
+    }
+
+    /**
+     * The province component of the user's address.
+     *
+     * @return BelongsTo<Province, $this>
+     */
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class, 'province_id');
+    }
+
+    /**
+     * The city component of the user's address.
+     *
+     * @return BelongsTo<City, $this>
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 
     /**
