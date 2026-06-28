@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\TripFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -82,5 +83,40 @@ class Trip extends Model
     public function hasDeparted(): bool
     {
         return $this->departure_at->isPast();
+    }
+
+    /**
+     * Scope to trips the given user is part of, as the driver or a passenger.
+     *
+     * @param  Builder<Trip>  $query
+     */
+    public function scopeInvolving(Builder $query, User $user): void
+    {
+        $query->where(function (Builder $query) use ($user): void {
+            $query->where('user_id', $user->getKey())
+                ->orWhereHas('passengers', function (Builder $passengers) use ($user): void {
+                    $passengers->whereKey($user->getKey());
+                });
+        });
+    }
+
+    /**
+     * Scope to trips that have not departed yet.
+     *
+     * @param  Builder<Trip>  $query
+     */
+    public function scopeUpcoming(Builder $query): void
+    {
+        $query->where('departure_at', '>=', now());
+    }
+
+    /**
+     * Scope to trips whose departure time has already passed.
+     *
+     * @param  Builder<Trip>  $query
+     */
+    public function scopePast(Builder $query): void
+    {
+        $query->where('departure_at', '<', now());
     }
 }
