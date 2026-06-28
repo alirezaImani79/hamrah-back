@@ -34,6 +34,71 @@ it('lists only the trips the authenticated user drives', function () {
         ->assertJsonCount(2, 'data');
 });
 
+it('lists current trips the user drives or has joined, soonest first', function () {
+    $user = User::factory()->create();
+
+    $driven = Trip::factory()->for($user)->create(['departure_at' => now()->addDays(5)]);
+    $soonest = Trip::factory()->for($user)->create(['departure_at' => now()->addDay()]);
+
+    $joined = Trip::factory()->create(['departure_at' => now()->addDays(3)]);
+    $joined->passengers()->attach($user);
+
+    Trip::factory()->for($user)->departed()->create(); // past, excluded
+    Trip::factory()->create(['departure_at' => now()->addDay()]); // someone else's, excluded
+
+    $token = $user->createToken('test')->plainTextToken;
+
+    $this->withToken($token)->getJson('/api/v1/trips/current')
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('data.0.id', $soonest->id)
+        ->assertJsonPath('data.1.id', $joined->id)
+        ->assertJsonPath('data.2.id', $driven->id)
+        ->assertJsonPath('data.0.role', 'driver')
+        ->assertJsonPath('data.1.role', 'passenger');
+});
+
+it('lists past trips the user drives or has joined, most recent first', function () {
+    $user = User::factory()->create();
+
+    $older = Trip::factory()->for($user)->create(['departure_at' => now()->subDays(5)]);
+    $recent = Trip::factory()->for($user)->create(['departure_at' => now()->subDay()]);
+
+    $joined = Trip::factory()->create(['departure_at' => now()->subDays(3)]);
+    $joined->passengers()->attach($user);
+
+    Trip::factory()->for($user)->create(['departure_at' => now()->addDay()]); // upcoming, excluded
+    Trip::factory()->departed()->create(); // someone else's, excluded
+
+    $token = $user->createToken('test')->plainTextToken;
+
+    $this->withToken($token)->getJson('/api/v1/trips/history')
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('data.0.id', $recent->id)
+        ->assertJsonPath('data.1.id', $joined->id)
+        ->assertJsonPath('data.2.id', $older->id)
+        ->assertJsonPath('data.1.role', 'passenger');
+});
+
+it('returns an empty list when the user has no current trips', function () {
+    $user = User::factory()->create();
+    Trip::factory()->for($user)->departed()->create(); // only past trips
+
+    $token = $user->createToken('test')->plainTextToken;
+
+    $this->withToken($token)->getJson('/api/v1/trips/current')
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
+});
+
+it('requires authentication for current and history', function () {
+    $this->getJson('/api/v1/trips/current')->assertStatus(401);
+    $this->getJson('/api/v1/trips/history')->assertStatus(401);
+});
+
 it('creates a trip for the authenticated user', function () {
     $user = User::factory()->create();
     $vehicle = Vehicle::factory()->for($user)->create();
