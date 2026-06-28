@@ -95,6 +95,28 @@ use OpenApi\Attributes as OA;
         ),
     ],
 )]
+#[OA\Schema(
+    schema: 'TripResponse',
+    title: 'Trip envelope',
+    properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(property: 'data', ref: '#/components/schemas/Trip'),
+    ],
+)]
+#[OA\Schema(
+    schema: 'TripCollectionResponse',
+    title: 'Trip collection envelope',
+    properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(
+            property: 'data',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Trip'),
+        ),
+    ],
+)]
 class ApiDoc
 {
     //

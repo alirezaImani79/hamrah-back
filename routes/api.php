@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Identity\IdentityVerificationController;
 use App\Http\Controllers\Api\V1\Location\LocationController;
 use App\Http\Controllers\Api\V1\Newsletter\NewsletterController;
+use App\Http\Controllers\Api\V1\Trip\TripController;
+use App\Http\Controllers\Api\V1\Trip\TripPassengerController;
 use App\Http\Controllers\Api\V1\Vehicle\VehicleController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,5 +43,15 @@ Route::prefix('v1')->group(function () {
         Route::get('{vehicle}', [VehicleController::class, 'show']);
         Route::put('{vehicle}', [VehicleController::class, 'update']);
         Route::delete('{vehicle}', [VehicleController::class, 'destroy']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('trips')->group(function () {
+        Route::get('/', [TripController::class, 'index']);
+        Route::post('/', [TripController::class, 'store']);
+        Route::get('{trip}', [TripController::class, 'show']);
+        Route::put('{trip}', [TripController::class, 'update']);
+        Route::delete('{trip}', [TripController::class, 'destroy']);
+        Route::post('{trip}/join', [TripPassengerController::class, 'store']);
+        Route::delete('{trip}/leave', [TripPassengerController::class, 'destroy']);
     });
 });
