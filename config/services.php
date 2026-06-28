@@ -36,7 +36,7 @@ return [
     ],
 
     'sms' => [
-        'driver' => env('SMS_DRIVER', 'log'),
+        'driver' => env('SMS_DRIVER'),
 
         'smsir' => [
             'key' => env('SMSIR_API_KEY'),

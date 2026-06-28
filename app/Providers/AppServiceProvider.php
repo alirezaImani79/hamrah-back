@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SmsSender::class, function (): SmsSender {
-            return match (config('services.sms.driver')) {
+            return match ($this->resolveSmsDriver()) {
                 'smsir' => new SmsIrSmsSender(
                     (string) config('services.sms.smsir.key'),
                     (string) config('services.sms.smsir.line_number'),
@@ -41,5 +41,22 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+    }
+
+    /**
+     * Determine which SMS driver to use.
+     *
+     * An explicit `SMS_DRIVER` always wins; otherwise the gateway is only used
+     * in production so non-production environments just log outgoing messages.
+     */
+    private function resolveSmsDriver(): string
+    {
+        $driver = config('services.sms.driver');
+
+        if (is_string($driver) && $driver !== '') {
+            return $driver;
+        }
+
+        return $this->app->environment('production') ? 'smsir' : 'log';
     }
 }
