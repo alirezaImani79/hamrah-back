@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Identity\IdentityVerificationController;
 use App\Http\Controllers\Api\V1\Location\LocationController;
 use App\Http\Controllers\Api\V1\Newsletter\NewsletterController;
+use App\Http\Controllers\Api\V1\Vehicle\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -32,5 +33,13 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->prefix('identity')->group(function () {
         Route::get('/', [IdentityVerificationController::class, 'status']);
         Route::post('verify', [IdentityVerificationController::class, 'submit']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('vehicles')->group(function () {
+        Route::get('/', [VehicleController::class, 'index']);
+        Route::post('/', [VehicleController::class, 'store']);
+        Route::get('{vehicle}', [VehicleController::class, 'show']);
+        Route::put('{vehicle}', [VehicleController::class, 'update']);
+        Route::delete('{vehicle}', [VehicleController::class, 'destroy']);
     });
 });
