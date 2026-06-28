@@ -5,6 +5,7 @@ namespace App\Services\Trip;
 use App\Jobs\SendTripUpdatedSms;
 use App\Models\Trip;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
 class TripService
@@ -17,6 +18,36 @@ class TripService
     public function create(User $driver, array $data): Trip
     {
         return $driver->trips()->create($data);
+    }
+
+    /**
+     * Get the user's upcoming trips (as driver or passenger), soonest first.
+     *
+     * @return Collection<int, Trip>
+     */
+    public function upcomingForUser(User $user): Collection
+    {
+        return Trip::query()
+            ->involving($user)
+            ->upcoming()
+            ->withCount('passengers')
+            ->orderBy('departure_at')
+            ->get();
+    }
+
+    /**
+     * Get the user's past trips (as driver or passenger), most recent first.
+     *
+     * @return Collection<int, Trip>
+     */
+    public function historyForUser(User $user): Collection
+    {
+        return Trip::query()
+            ->involving($user)
+            ->past()
+            ->withCount('passengers')
+            ->orderByDesc('departure_at')
+            ->get();
     }
 
     /**

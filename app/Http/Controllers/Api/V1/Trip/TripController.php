@@ -39,6 +39,48 @@ class TripController extends Controller
     }
 
     /**
+     * List the authenticated user's upcoming trips, as driver or passenger.
+     */
+    #[OA\Get(
+        path: '/api/v1/trips/current',
+        operationId: 'listCurrentTrips',
+        summary: 'List the authenticated user\'s upcoming trips',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'List of upcoming trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function current(Request $request): JsonResponse
+    {
+        $trips = $this->trips->upcomingForUser($request->user());
+
+        return ApiResponse::success(TripResource::collection($trips), 'Current trips retrieved.');
+    }
+
+    /**
+     * List the authenticated user's past trips, as driver or passenger.
+     */
+    #[OA\Get(
+        path: '/api/v1/trips/history',
+        operationId: 'listTripHistory',
+        summary: 'List the authenticated user\'s past trips',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'List of past trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function history(Request $request): JsonResponse
+    {
+        $trips = $this->trips->historyForUser($request->user());
+
+        return ApiResponse::success(TripResource::collection($trips), 'Trip history retrieved.');
+    }
+
+    /**
      * Create a new trip for the authenticated user.
      */
     #[OA\Post(
