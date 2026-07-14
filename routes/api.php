@@ -49,6 +49,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [TripController::class, 'index']);
         Route::get('current', [TripController::class, 'current']);
         Route::get('history', [TripController::class, 'history']);
+        Route::post('match', [TripController::class, 'match']);
         Route::post('/', [TripController::class, 'store']);
         Route::get('{trip}', [TripController::class, 'show']);
         Route::put('{trip}', [TripController::class, 'update']);

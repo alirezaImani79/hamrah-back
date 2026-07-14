@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Trip;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Trip\MatchTripRequest;
 use App\Http\Requests\Api\V1\Trip\StoreTripRequest;
 use App\Http\Requests\Api\V1\Trip\UpdateTripRequest;
+use App\Http\Resources\V1\MatchedTripResource;
 use App\Http\Resources\V1\TripResource;
 use App\Models\Trip;
 use App\Services\Trip\TripService;
@@ -78,6 +80,32 @@ class TripController extends Controller
         $trips = $this->trips->historyForUser($request->user());
 
         return ApiResponse::success(TripResource::collection($trips), 'Trip history retrieved.');
+    }
+
+    /**
+     * Find scheduled trips that fit the authenticated user's travel request.
+     */
+    #[OA\Post(
+        path: '/api/v1/trips/match',
+        operationId: 'matchTrips',
+        summary: 'Find scheduled trips matching a travel request',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/MatchTripInput'),
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Ranked matching trips', content: new OA\JsonContent(ref: '#/components/schemas/MatchedTripCollectionResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function match(MatchTripRequest $request): JsonResponse
+    {
+        $trips = $this->trips->matching($request->user(), $request->validated());
+
+        return ApiResponse::success(MatchedTripResource::collection($trips), 'Matching trips retrieved.');
     }
 
     /**

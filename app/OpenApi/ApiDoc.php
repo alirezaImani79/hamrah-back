@@ -117,6 +117,19 @@ use OpenApi\Attributes as OA;
         ),
     ],
 )]
+#[OA\Schema(
+    schema: 'MatchedTripCollectionResponse',
+    title: 'Matched trip collection envelope',
+    properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(
+            property: 'data',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/MatchedTrip'),
+        ),
+    ],
+)]
 class ApiDoc
 {
     //
