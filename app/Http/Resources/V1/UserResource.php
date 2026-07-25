@@ -33,7 +33,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'identity_status', type: 'string', enum: ['pending', 'verifying', 'verified', 'rejected'], example: 'verifying'),
         new OA\Property(property: 'is_identity_verified', type: 'boolean', example: false),
         new OA\Property(property: 'identity_verified_at', type: 'string', format: 'date-time', nullable: true),
-        new OA\Property(property: 'identity_rejection_reason', type: 'string', nullable: true, example: 'The selfie does not match the card photo.'),
+        new OA\Property(property: 'identity_rejection_reason', type: 'string', nullable: true, example: 'کد ملی واردشده با کارت ملی مطابقت ندارد.'),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
         new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
     ],

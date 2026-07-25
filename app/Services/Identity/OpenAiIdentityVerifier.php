@@ -61,11 +61,18 @@ class OpenAiIdentityVerifier implements IdentityVerifier
         - the face in the selfie is the same person as the photo on the national card.
 
         Respond with a single JSON object and nothing else, shaped exactly as:
-        {"probability": <number between 0 and 1>, "reason": "<short explanation>"}
+        {"probability": <number between 0 and 1>, "reason": "<explanation in Persian>"}
 
         "probability" is your overall confidence (0 = certainly not a match,
         1 = certainly a match). Be conservative when images are unreadable,
         cropped, or the data cannot be confirmed.
+
+        "reason" MUST always be a non-empty string written in Persian (Farsi).
+        Use it to explain why you assigned that probability. When the probability
+        is low, be specific and actionable so the person knows exactly what to
+        correct before resubmitting - for example which field does not match the
+        card, or that the selfie or card photo is blurry, dark, or cropped. Keep
+        the reason concise.
         PROMPT;
     }
 

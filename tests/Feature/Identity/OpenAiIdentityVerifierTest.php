@@ -78,3 +78,25 @@ it('throws when the model returns an unparseable response', function () {
     expect(fn () => (new OpenAiIdentityVerifier('gpt-4o', 'local'))->verify($user))
         ->toThrow(RuntimeException::class);
 });
+
+it('instructs the model to write the reason in Persian so users can act on it', function () {
+    $user = userWithDocuments();
+
+    OpenAI::fake([
+        CreateResponse::fake([
+            'choices' => [
+                ['message' => ['content' => '{"probability": 0.4, "reason": "کد ملی مطابقت ندارد."}']],
+            ],
+        ]),
+    ]);
+
+    (new OpenAiIdentityVerifier('gpt-4o', 'local'))->verify($user);
+
+    OpenAI::assertSent(Chat::class, function (string $method, array $parameters): bool {
+        $system = $parameters['messages'][0]['content'] ?? '';
+
+        return $method === 'create'
+            && str_contains($system, 'Persian (Farsi)')
+            && str_contains($system, 'actionable');
+    });
+});

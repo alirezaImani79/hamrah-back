@@ -15,7 +15,7 @@ return [
     */
 
     // Vision-capable OpenAI model used to compare the documents and data.
-    'model' => env('IDENTITY_VERIFICATION_MODEL', 'gpt-4o'),
+    'model' => env('IDENTITY_VERIFICATION_MODEL', 'gpt-5.6-luna'),
 
     // Minimum match probability (0..1) required to mark a user as verified.
     'threshold' => (float) env('IDENTITY_VERIFICATION_THRESHOLD', 0.8),
