@@ -156,25 +156,53 @@ it('rejects a departure time in the past', function () {
         ->assertJsonValidationErrors(['departure_at']);
 });
 
-it('shows a trip the user drives', function () {
-    $user = User::factory()->create();
-    $trip = Trip::factory()->for($user)->create();
-    $token = $user->createToken('test')->plainTextToken;
+it('shows a trip the user drives with its driver, vehicle, and passengers', function () {
+    $driver = User::factory()->identityVerified()->create();
+    $vehicle = Vehicle::factory()->for($driver)->create();
+    $trip = Trip::factory()->for($driver)->for($vehicle)->create();
+    $token = $driver->createToken('test')->plainTextToken;
 
     $this->withToken($token)->getJson("/api/v1/trips/{$trip->id}")
         ->assertOk()
-        ->assertJsonPath('data.id', $trip->id);
+        ->assertJsonPath('data.id', $trip->id)
+        ->assertJsonPath('data.driver.id', $driver->id)
+        ->assertJsonPath('data.driver.phone_number', $driver->phone_number)
+        ->assertJsonPath('data.driver.is_identity_verified', true)
+        ->assertJsonPath('data.vehicle.id', $vehicle->id)
+        ->assertJsonPath('data.passengers_count', 0)
+        ->assertJsonCount(0, 'data.passengers')
+        ->assertJsonMissingPath('data.driver.national_code')
+        ->assertJsonMissingPath('data.driver.address')
+        ->assertJsonMissingPath('data.driver.email');
 });
 
-it('lets a passenger view a trip they joined', function () {
-    $trip = Trip::factory()->create();
+it('lets a passenger view a trip they joined with the driver and every passenger', function () {
+    $driver = User::factory()->identityVerified()->create();
+    $vehicle = Vehicle::factory()->for($driver)->create();
+    $trip = Trip::factory()->for($driver)->for($vehicle)->create();
+
     $passenger = User::factory()->create();
-    $trip->passengers()->attach($passenger);
+    $coPassenger = User::factory()->identityVerified()->create();
+    $trip->passengers()->attach([$passenger->id, $coPassenger->id]);
+
     $token = $passenger->createToken('test')->plainTextToken;
 
     $this->withToken($token)->getJson("/api/v1/trips/{$trip->id}")
         ->assertOk()
-        ->assertJsonPath('data.id', $trip->id);
+        ->assertJsonPath('data.id', $trip->id)
+        ->assertJsonPath('data.driver.id', $driver->id)
+        ->assertJsonPath('data.driver.phone_number', $driver->phone_number)
+        ->assertJsonCount(2, 'data.passengers')
+        ->assertJsonPath('data.passengers_count', 2)
+        ->assertJsonStructure([
+            'data' => [
+                'passengers' => [
+                    ['phone_number', 'is_identity_verified'],
+                ],
+            ],
+        ])
+        ->assertJsonMissingPath('data.driver.national_code')
+        ->assertJsonMissingPath('data.passengers.0.national_code');
 });
 
 it('forbids viewing a trip the user is unrelated to', function () {
