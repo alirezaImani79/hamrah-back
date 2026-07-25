@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\Trip\MatchTripRequest;
 use App\Http\Requests\Api\V1\Trip\StoreTripRequest;
 use App\Http\Requests\Api\V1\Trip\UpdateTripRequest;
 use App\Http\Resources\V1\MatchedTripResource;
+use App\Http\Resources\V1\TripDetailResource;
 use App\Http\Resources\V1\TripResource;
 use App\Models\Trip;
 use App\Services\Trip\TripService;
@@ -147,7 +148,7 @@ class TripController extends Controller
             new OA\Parameter(name: 'trip', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Trip details', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
+            new OA\Response(response: 200, description: 'Trip details with driver, vehicle, and passengers', content: new OA\JsonContent(ref: '#/components/schemas/TripDetailResponse')),
             new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
             new OA\Response(response: 403, description: 'Forbidden', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
             new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
@@ -158,7 +159,13 @@ class TripController extends Controller
         $model = Trip::findOrFail($trip);
         $this->authorize('view', $model);
 
-        return ApiResponse::success(new TripResource($model->loadCount('passengers')), 'Trip retrieved.');
+        $model->load([
+            'user',
+            'vehicle',
+            'passengers' => fn ($passengers) => $passengers->orderByPivot('created_at'),
+        ]);
+
+        return ApiResponse::success(new TripDetailResource($model), 'Trip retrieved.');
     }
 
     /**

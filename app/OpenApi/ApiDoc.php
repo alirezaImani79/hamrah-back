@@ -105,6 +105,15 @@ use OpenApi\Attributes as OA;
     ],
 )]
 #[OA\Schema(
+    schema: 'TripDetailResponse',
+    title: 'Trip detail envelope',
+    properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(property: 'data', ref: '#/components/schemas/TripDetail'),
+    ],
+)]
+#[OA\Schema(
     schema: 'TripCollectionResponse',
     title: 'Trip collection envelope',
     properties: [
