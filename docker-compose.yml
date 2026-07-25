@@ -1,0 +1,59 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+    image: hamrah-app:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./.env:/var/www/html/.env:ro
+      - storage:/var/www/html/storage
+    networks:
+      - caddy
+
+  queue:
+    image: hamrah-app:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./.env:/var/www/html/.env:ro
+      - storage:/var/www/html/storage
+    entrypoint: ["docker-php-entrypoint"]
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    networks:
+      - caddy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    image: hamrah-web:latest
+    container_name: hamrah-web
+    restart: unless-stopped
+    depends_on:
+      - app
+    volumes:
+      - storage:/var/www/html/storage:ro
+    networks:
+      - default
+      - caddy
+
+volumes:
+  storage:
+
+networks:
+  caddy:
+    external: true

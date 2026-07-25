@@ -1,0 +1,36 @@
+# VCS / editor / tooling
+.git
+.gitignore
+.gitattributes
+.dockerignore
+.editorconfig
+Dockerfile
+docker-compose*.yml
+.cursor
+.factory
+.agents
+.mcp.json
+.claude
+opencode.json
+boost.json
+AGENTS.md
+CLAUDE.md
+README.md
+
+# Secrets — mounted at runtime, never baked into the image
+.env
+.env.*
+
+# Build artifacts that are rebuilt inside the image
+vendor
+
+# Test suite + local-only config
+tests
+phpunit.xml
+
+# Runtime data (kept in volumes; the image recreates the directory skeleton).
+# Keep public/vendor (l5-swagger published assets) — only exclude build output.
+storage/logs
+storage/framework
+storage/app
+storage/api-docs

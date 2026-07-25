@@ -1,7 +1,4 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+// JSON-only REST API — all endpoints live under routes/api.php.
+// This file is intentionally empty; it is loaded by bootstrap/app.php.
