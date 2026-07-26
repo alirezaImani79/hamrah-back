@@ -1,7 +1,9 @@
 <?php
 
+use App\Exceptions\ApiException;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Support\ApiResponse;
+use App\Support\ErrorCode;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -40,31 +42,41 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return match (true) {
+                $e instanceof ApiException => ApiResponse::error(
+                    $e->getMessage() ?: 'Error.',
+                    $e->errors,
+                    $e->getStatusCode(),
+                    $e->errorCode,
+                ),
                 $e instanceof ValidationException => ApiResponse::error(
                     'The given data was invalid.',
                     $e->errors(),
                     422,
+                    ErrorCode::ValidationFailed,
                 ),
-                $e instanceof AuthenticationException => ApiResponse::error('Unauthenticated.', null, 401),
+                $e instanceof AuthenticationException => ApiResponse::error('Unauthenticated.', null, 401, ErrorCode::Unauthenticated),
                 $e instanceof AuthorizationException,
                 $e instanceof AccessDeniedHttpException => ApiResponse::error(
                     $e->getMessage() ?: 'This action is unauthorized.',
                     null,
                     403,
+                    ErrorCode::Unauthorized,
                 ),
-                $e instanceof ModelNotFoundException => ApiResponse::error('Resource not found.', null, 404),
-                $e instanceof NotFoundHttpException => ApiResponse::error('The requested endpoint was not found.', null, 404),
-                $e instanceof MethodNotAllowedHttpException => ApiResponse::error('The HTTP method is not allowed for this endpoint.', null, 405),
-                $e instanceof TooManyRequestsHttpException => ApiResponse::error('Too many requests. Please slow down.', null, 429),
+                $e instanceof ModelNotFoundException => ApiResponse::error('Resource not found.', null, 404, ErrorCode::NotFound),
+                $e instanceof NotFoundHttpException => ApiResponse::error('The requested endpoint was not found.', null, 404, ErrorCode::EndpointNotFound),
+                $e instanceof MethodNotAllowedHttpException => ApiResponse::error('The HTTP method is not allowed for this endpoint.', null, 405, ErrorCode::MethodNotAllowed),
+                $e instanceof TooManyRequestsHttpException => ApiResponse::error('Too many requests. Please slow down.', null, 429, ErrorCode::TooManyRequests),
                 $e instanceof HttpExceptionInterface => ApiResponse::error(
                     $e->getMessage() ?: 'HTTP error.',
                     null,
                     $e->getStatusCode(),
+                    ErrorCode::ServerError,
                 ),
                 default => ApiResponse::error(
                     config('app.debug') ? $e->getMessage() : 'Server error.',
                     config('app.debug') ? ['exception' => $e::class] : null,
                     500,
+                    ErrorCode::ServerError,
                 ),
             };
         });

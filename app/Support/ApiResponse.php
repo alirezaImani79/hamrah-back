@@ -21,13 +21,18 @@ class ApiResponse
     /**
      * Build a failed JSON envelope.
      *
+     * The `code` is a stable, machine-readable identifier (see {@see ErrorCode})
+     * the frontend uses to resolve a localized message; `message` remains an
+     * English developer/human fallback.
+     *
      * @param  array<string, mixed>|null  $errors
      */
-    public static function error(string $message, ?array $errors = null, int $status = 400): JsonResponse
+    public static function error(string $message, ?array $errors = null, int $status = 400, ?ErrorCode $code = null): JsonResponse
     {
         return response()->json([
             'success' => false,
             'message' => $message,
+            'code' => ($code ?? ErrorCode::ServerError)->value,
             'errors' => $errors,
         ], $status);
     }
