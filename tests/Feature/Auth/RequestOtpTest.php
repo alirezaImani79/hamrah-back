@@ -1,12 +1,12 @@
 <?php
 
-use App\Contracts\SmsSender;
+use App\Contracts\OtpSmsSender;
 use App\Models\OtpCode;
 use App\Services\Sms\FakeSmsSender;
 
 beforeEach(function () {
     $this->sms = new FakeSmsSender;
-    $this->app->instance(SmsSender::class, $this->sms);
+    $this->app->instance(OtpSmsSender::class, $this->sms);
 });
 
 it('issues a hashed otp code and dispatches it via sms', function () {
@@ -20,7 +20,8 @@ it('issues a hashed otp code and dispatches it via sms', function () {
 
     $otp = OtpCode::where('phone_number', '+15551234567')->sole();
 
-    expect($this->sms->messages)->toHaveCount(1)
+    expect($this->sms->codes)->toHaveCount(1)
+        ->and($this->sms->lastCodeTo('+15551234567'))->toBe($response->json('data.debug_code'))
         ->and($otp->code)->not->toBe('123456') // stored as a hash, never plain text
         ->and(strlen($otp->code))->toBeGreaterThan(20);
 });
