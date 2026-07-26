@@ -42,24 +42,45 @@ class TripController extends Controller
     }
 
     /**
-     * List the authenticated user's upcoming trips, as driver or passenger.
+     * List the authenticated user's scheduled trips, as driver or passenger.
      */
     #[OA\Get(
-        path: '/api/v1/trips/current',
-        operationId: 'listCurrentTrips',
-        summary: 'List the authenticated user\'s upcoming trips',
+        path: '/api/v1/trips/upcoming',
+        operationId: 'listUpcomingTrips',
+        summary: 'List the authenticated user\'s scheduled trips',
         tags: ['Trips'],
         security: [['sanctum' => []]],
         responses: [
-            new OA\Response(response: 200, description: 'List of upcoming trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
+            new OA\Response(response: 200, description: 'List of scheduled trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
             new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
-    public function current(Request $request): JsonResponse
+    public function upcoming(Request $request): JsonResponse
     {
         $trips = $this->trips->upcomingForUser($request->user());
 
-        return ApiResponse::success(TripResource::collection($trips), 'Current trips retrieved.');
+        return ApiResponse::success(TripResource::collection($trips), 'Upcoming trips retrieved.');
+    }
+
+    /**
+     * List the authenticated user's ongoing trips, as driver or passenger.
+     */
+    #[OA\Get(
+        path: '/api/v1/trips/ongoing',
+        operationId: 'listOngoingTrips',
+        summary: 'List the authenticated user\'s ongoing trips',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'List of ongoing trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function ongoing(Request $request): JsonResponse
+    {
+        $trips = $this->trips->ongoingForUser($request->user());
+
+        return ApiResponse::success(TripResource::collection($trips), 'Ongoing trips retrieved.');
     }
 
     /**
@@ -230,5 +251,95 @@ class TripController extends Controller
         $this->trips->delete($model);
 
         return ApiResponse::success(null, 'Trip deleted.');
+    }
+
+    /**
+     * Start a trip the user drives: scheduled → ongoing.
+     */
+    #[OA\Post(
+        path: '/api/v1/trips/{trip}/start',
+        operationId: 'startTrip',
+        summary: 'Start a trip',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'trip', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Trip started', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden, only the driver may start the trip (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 409, description: 'The trip is not scheduled (`TRIP_STATUS_TRANSITION_INVALID`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function start(Request $request, string $trip): JsonResponse
+    {
+        $model = Trip::findOrFail($trip);
+        $this->authorize('start', $model);
+
+        $started = $this->trips->start($model);
+
+        return ApiResponse::success(new TripResource($started->loadCount('passengers')), 'Trip started.');
+    }
+
+    /**
+     * Complete a trip the user drives: ongoing → completed.
+     */
+    #[OA\Post(
+        path: '/api/v1/trips/{trip}/complete',
+        operationId: 'completeTrip',
+        summary: 'Complete a trip',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'trip', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Trip completed', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden, only the driver may complete the trip (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 409, description: 'The trip is not ongoing (`TRIP_STATUS_TRANSITION_INVALID`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function complete(Request $request, string $trip): JsonResponse
+    {
+        $model = Trip::findOrFail($trip);
+        $this->authorize('complete', $model);
+
+        $completed = $this->trips->complete($model);
+
+        return ApiResponse::success(new TripResource($completed->loadCount('passengers')), 'Trip completed.');
+    }
+
+    /**
+     * Cancel a trip the user drives: scheduled or ongoing → cancelled.
+     */
+    #[OA\Post(
+        path: '/api/v1/trips/{trip}/cancel',
+        operationId: 'cancelTrip',
+        summary: 'Cancel a trip',
+        tags: ['Trips'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'trip', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Trip cancelled', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden, only the driver may cancel the trip (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 409, description: 'The trip has already finished (`TRIP_STATUS_TRANSITION_INVALID`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+        ],
+    )]
+    public function cancel(Request $request, string $trip): JsonResponse
+    {
+        $model = Trip::findOrFail($trip);
+        $this->authorize('cancel', $model);
+
+        $cancelled = $this->trips->cancel($model);
+
+        return ApiResponse::success(new TripResource($cancelled->loadCount('passengers')), 'Trip cancelled.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TripStatus;
 use Database\Factories\TripFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'departure_at',
     'empty_seats',
     'trunk_empty',
+    'status',
+    'started_at',
+    'ended_at',
 ])]
 class Trip extends Model
 {
@@ -44,6 +48,9 @@ class Trip extends Model
             'departure_at' => 'datetime',
             'empty_seats' => 'integer',
             'trunk_empty' => 'boolean',
+            'status' => TripStatus::class,
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
         ];
     }
 
@@ -78,14 +85,6 @@ class Trip extends Model
     }
 
     /**
-     * Determine if the trip's departure time has already passed.
-     */
-    public function hasDeparted(): bool
-    {
-        return $this->departure_at->isPast();
-    }
-
-    /**
      * Scope to trips the given user is part of, as the driver or a passenger.
      *
      * @param  Builder<Trip>  $query
@@ -101,22 +100,32 @@ class Trip extends Model
     }
 
     /**
-     * Scope to trips that have not departed yet.
+     * Scope to trips that are still scheduled and open for passengers.
      *
      * @param  Builder<Trip>  $query
      */
-    public function scopeUpcoming(Builder $query): void
+    public function scopeScheduled(Builder $query): void
     {
-        $query->where('departure_at', '>=', now());
+        $query->where('status', TripStatus::Scheduled);
     }
 
     /**
-     * Scope to trips whose departure time has already passed.
+     * Scope to trips the driver has started and that are currently on the road.
+     *
+     * @param  Builder<Trip>  $query
+     */
+    public function scopeOngoing(Builder $query): void
+    {
+        $query->where('status', TripStatus::Ongoing);
+    }
+
+    /**
+     * Scope to trips that have finished or been cancelled.
      *
      * @param  Builder<Trip>  $query
      */
     public function scopePast(Builder $query): void
     {
-        $query->where('departure_at', '<', now());
+        $query->whereIn('status', [TripStatus::Completed, TripStatus::Cancelled]);
     }
 }

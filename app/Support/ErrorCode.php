@@ -53,4 +53,7 @@ enum ErrorCode: string
 
     /** 422 — The user has already joined this trip. */
     case TripAlreadyJoined = 'TRIP_ALREADY_JOINED';
+
+    /** 409 — The trip cannot transition from its current status to the requested one. */
+    case TripStatusTransitionInvalid = 'TRIP_STATUS_TRANSITION_INVALID';
 }

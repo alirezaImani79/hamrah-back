@@ -2,6 +2,7 @@
 
 namespace App\Services\Trip;
 
+use App\Enums\TripStatus;
 use App\Exceptions\ApiException;
 use App\Jobs\SendTripUpdatedSms;
 use App\Models\Trip;
@@ -31,11 +32,13 @@ class TripService
      */
     public function create(User $driver, array $data): Trip
     {
-        return $driver->trips()->create($data);
+        return $driver->trips()->create(array_merge([
+            'status' => TripStatus::Scheduled,
+        ], $data));
     }
 
     /**
-     * Get the user's upcoming trips (as driver or passenger), soonest first.
+     * Get the user's scheduled trips (as driver or passenger), soonest first.
      *
      * @return Collection<int, Trip>
      */
@@ -43,14 +46,31 @@ class TripService
     {
         return Trip::query()
             ->involving($user)
-            ->upcoming()
+            ->scheduled()
+            ->with(['user', 'vehicle'])
             ->withCount('passengers')
             ->orderBy('departure_at')
             ->get();
     }
 
     /**
-     * Get the user's past trips (as driver or passenger), most recent first.
+     * Get the user's ongoing trips (as driver or passenger), most recently started first.
+     *
+     * @return Collection<int, Trip>
+     */
+    public function ongoingForUser(User $user): Collection
+    {
+        return Trip::query()
+            ->involving($user)
+            ->ongoing()
+            ->with(['user', 'vehicle'])
+            ->withCount('passengers')
+            ->orderByDesc('started_at')
+            ->get();
+    }
+
+    /**
+     * Get the user's past trips (as driver or passenger), most recently active first.
      *
      * @return Collection<int, Trip>
      */
@@ -59,8 +79,9 @@ class TripService
         return Trip::query()
             ->involving($user)
             ->past()
+            ->with(['user', 'vehicle'])
             ->withCount('passengers')
-            ->orderByDesc('departure_at')
+            ->orderByDesc('updated_at')
             ->get();
     }
 
@@ -89,7 +110,8 @@ class TripService
         $query = Trip::query()
             ->with('user')
             ->withCount('passengers')
-            ->upcoming()
+            ->scheduled()
+            ->where('departure_at', '>=', now())
             ->whereBetween('departure_at', [$windowStart, $windowEnd])
             ->whereBetween('origin_lat', [$originBox['minLat'], $originBox['maxLat']])
             ->whereBetween('origin_lng', [$originBox['minLng'], $originBox['maxLng']])
@@ -167,6 +189,88 @@ class TripService
     }
 
     /**
+     * Start the trip: scheduled → ongoing.
+     *
+     * @throws ApiException When the trip is not scheduled ({@see ErrorCode::TripStatusTransitionInvalid}).
+     */
+    public function start(Trip $trip): Trip
+    {
+        $this->ensureStatus($trip, TripStatus::Scheduled);
+
+        $trip->update([
+            'status' => TripStatus::Ongoing,
+            'started_at' => now(),
+        ]);
+
+        return $trip;
+    }
+
+    /**
+     * Complete the trip: ongoing → completed.
+     *
+     * @throws ApiException When the trip is not ongoing ({@see ErrorCode::TripStatusTransitionInvalid}).
+     */
+    public function complete(Trip $trip): Trip
+    {
+        $this->ensureStatus($trip, TripStatus::Ongoing);
+
+        $trip->update([
+            'status' => TripStatus::Completed,
+            'ended_at' => now(),
+        ]);
+
+        return $trip;
+    }
+
+    /**
+     * Cancel the trip: scheduled or ongoing → cancelled, notifying passengers.
+     *
+     * @throws ApiException When the trip can no longer be cancelled ({@see ErrorCode::TripStatusTransitionInvalid}).
+     */
+    public function cancel(Trip $trip): Trip
+    {
+        if (! in_array($trip->status, [TripStatus::Scheduled, TripStatus::Ongoing], true)) {
+            throw $this->transitionException($trip);
+        }
+
+        $trip->update([
+            'status' => TripStatus::Cancelled,
+            'ended_at' => now(),
+        ]);
+
+        $this->notifyPassengers(
+            $trip->load('passengers'),
+            'The trip you joined has been cancelled by the driver.'
+        );
+
+        return $trip;
+    }
+
+    /**
+     * Guard that the trip is in the expected status, else throw.
+     *
+     * @throws ApiException
+     */
+    private function ensureStatus(Trip $trip, TripStatus $status): void
+    {
+        if ($trip->status !== $status) {
+            throw $this->transitionException($trip);
+        }
+    }
+
+    /**
+     * Build the exception for an illegal status transition.
+     */
+    private function transitionException(Trip $trip): ApiException
+    {
+        return new ApiException(
+            errorCode: ErrorCode::TripStatusTransitionInvalid,
+            message: "This trip cannot be changed because its status is {$trip->status->value}.",
+            statusCode: 409,
+        );
+    }
+
+    /**
      * Sign the given user up as a passenger on the trip.
      *
      * @throws ApiException When the user already joined ({@see ErrorCode::TripAlreadyJoined})
@@ -209,8 +313,18 @@ class TripService
     public function notifyPassengersOfUpdate(Trip $trip): void
     {
         $departure = $trip->departure_at->format('Y-m-d H:i');
-        $message = "Your trip on {$departure} has been updated by the driver. Please check the app for the latest details.";
 
+        $this->notifyPassengers(
+            $trip,
+            "Your trip on {$departure} has been updated by the driver. Please check the app for the latest details."
+        );
+    }
+
+    /**
+     * Dispatch an SMS to every signed-up passenger of the trip.
+     */
+    private function notifyPassengers(Trip $trip, string $message): void
+    {
         foreach ($trip->passengers as $passenger) {
             SendTripUpdatedSms::dispatch($passenger->phone_number, $message);
         }

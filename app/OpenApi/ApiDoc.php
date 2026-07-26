@@ -42,7 +42,8 @@ use OpenApi\Attributes as OA;
         .'`OTP_INVALID` (422, code invalid/expired/used up), '
         .'`OTP_REQUEST_THROTTLED` (422, code requested too soon), '
         .'`IDENTITY_VERIFICATION_IN_PROGRESS` (409), `IDENTITY_ALREADY_VERIFIED` (409), '
-        .'`TRIP_FULL` (422), `TRIP_ALREADY_JOINED` (422).',
+        .'`TRIP_FULL` (422), `TRIP_ALREADY_JOINED` (422), '
+        .'`TRIP_STATUS_TRANSITION_INVALID` (409, illegal lifecycle transition).',
     properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'message', type: 'string', example: 'The given data was invalid.'),
@@ -65,6 +66,7 @@ use OpenApi\Attributes as OA;
                 'IDENTITY_ALREADY_VERIFIED',
                 'TRIP_FULL',
                 'TRIP_ALREADY_JOINED',
+                'TRIP_STATUS_TRANSITION_INVALID',
             ],
             example: 'VALIDATION_FAILED',
         ),

@@ -47,13 +47,17 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->prefix('trips')->group(function () {
         Route::get('/', [TripController::class, 'index']);
-        Route::get('current', [TripController::class, 'current']);
+        Route::get('upcoming', [TripController::class, 'upcoming']);
+        Route::get('ongoing', [TripController::class, 'ongoing']);
         Route::get('history', [TripController::class, 'history']);
         Route::post('match', [TripController::class, 'match']);
         Route::post('/', [TripController::class, 'store']);
         Route::get('{trip}', [TripController::class, 'show']);
         Route::put('{trip}', [TripController::class, 'update']);
         Route::delete('{trip}', [TripController::class, 'destroy']);
+        Route::post('{trip}/start', [TripController::class, 'start']);
+        Route::post('{trip}/complete', [TripController::class, 'complete']);
+        Route::post('{trip}/cancel', [TripController::class, 'cancel']);
         Route::post('{trip}/join', [TripPassengerController::class, 'store']);
         Route::delete('{trip}/leave', [TripPassengerController::class, 'destroy']);
     });
