@@ -138,7 +138,8 @@ it('blocks a new submission while one is already in progress', function () {
 
     $this->withToken($token)->post('/api/v1/identity/verify', identityPayload())
         ->assertStatus(409)
-        ->assertJsonPath('success', false);
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('code', 'IDENTITY_VERIFICATION_IN_PROGRESS');
 
     Queue::assertNothingPushed();
 });
@@ -151,7 +152,8 @@ it('blocks a new submission once the user is verified', function () {
     $token = $user->createToken('test')->plainTextToken;
 
     $this->withToken($token)->post('/api/v1/identity/verify', identityPayload())
-        ->assertStatus(409);
+        ->assertStatus(409)
+        ->assertJsonPath('code', 'IDENTITY_ALREADY_VERIFIED');
 
     Queue::assertNothingPushed();
 });

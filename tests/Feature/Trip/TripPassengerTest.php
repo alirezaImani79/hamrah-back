@@ -42,6 +42,7 @@ it('does not let a user join a full trip', function () {
 
     $this->withToken($token)->postJson("/api/v1/trips/{$trip->id}/join")
         ->assertStatus(422)
+        ->assertJsonPath('code', 'TRIP_FULL')
         ->assertJsonValidationErrors(['trip']);
 });
 
@@ -53,6 +54,7 @@ it('does not let a user join the same trip twice', function () {
 
     $this->withToken($token)->postJson("/api/v1/trips/{$trip->id}/join")
         ->assertStatus(422)
+        ->assertJsonPath('code', 'TRIP_ALREADY_JOINED')
         ->assertJsonValidationErrors(['trip']);
 });
 

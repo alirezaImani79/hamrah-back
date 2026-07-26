@@ -30,7 +30,8 @@ it('rejects an invalid phone number', function () {
     $this->postJson('/api/v1/auth/otp/request', ['phone_number' => 'not-a-phone'])
         ->assertStatus(422)
         ->assertJsonPath('success', false)
-        ->assertJsonStructure(['success', 'message', 'errors' => ['phone_number']]);
+        ->assertJsonPath('code', 'VALIDATION_FAILED')
+        ->assertJsonStructure(['success', 'message', 'code', 'errors' => ['phone_number']]);
 });
 
 it('throttles rapid re-requests for the same number', function () {
@@ -40,5 +41,6 @@ it('throttles rapid re-requests for the same number', function () {
 
     $this->postJson('/api/v1/auth/otp/request', ['phone_number' => $phone])
         ->assertStatus(422)
-        ->assertJsonPath('success', false);
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('code', 'OTP_REQUEST_THROTTLED');
 });

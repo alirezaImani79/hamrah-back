@@ -43,7 +43,8 @@ it('rejects a wrong code', function () {
 
     $this->postJson('/api/v1/auth/otp/verify', ['phone_number' => $phone, 'code' => '000000'])
         ->assertStatus(422)
-        ->assertJsonPath('success', false);
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('code', 'OTP_INVALID');
 
     expect(OtpCode::where('phone_number', $phone)->sole()->attempts)->toBe(1);
 });
@@ -53,7 +54,8 @@ it('rejects an expired code', function () {
     OtpCode::factory()->forCode('123456')->expired()->create(['phone_number' => $phone]);
 
     $this->postJson('/api/v1/auth/otp/verify', ['phone_number' => $phone, 'code' => '123456'])
-        ->assertStatus(422);
+        ->assertStatus(422)
+        ->assertJsonPath('code', 'OTP_INVALID');
 });
 
 it('rejects an already consumed code', function () {
@@ -61,7 +63,8 @@ it('rejects an already consumed code', function () {
     OtpCode::factory()->forCode('123456')->consumed()->create(['phone_number' => $phone]);
 
     $this->postJson('/api/v1/auth/otp/verify', ['phone_number' => $phone, 'code' => '123456'])
-        ->assertStatus(422);
+        ->assertStatus(422)
+        ->assertJsonPath('code', 'OTP_INVALID');
 });
 
 it('locks out a code after the maximum attempts', function () {
@@ -70,5 +73,6 @@ it('locks out a code after the maximum attempts', function () {
     OtpCode::factory()->forCode('123456')->create(['phone_number' => $phone, 'attempts' => 3]);
 
     $this->postJson('/api/v1/auth/otp/verify', ['phone_number' => $phone, 'code' => '123456'])
-        ->assertStatus(422);
+        ->assertStatus(422)
+        ->assertJsonPath('code', 'OTP_INVALID');
 });
