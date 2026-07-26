@@ -34,7 +34,10 @@ class AppServiceProvider extends ServiceProvider
             // verify template is registered on the sms.ir panel, swap this for
             // SmsIrVerifySmsSender (built from services.sms.smsir.{otp_template_id,
             // otp_parameter, verify_endpoint}) to send them transactionally.
-            return new BulkOtpSmsSender($this->app->make(SmsSender::class));
+            return new BulkOtpSmsSender(
+                $this->app->make(SmsSender::class),
+                (string) config('services.sms.otp_domain'),
+            );
         });
 
         $this->app->singleton(IdentityVerifier::class, function (): IdentityVerifier {

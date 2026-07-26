@@ -38,6 +38,10 @@ return [
     'sms' => [
         'driver' => env('SMS_DRIVER'),
 
+        // Frontend host appended to OTP messages (`@host #code`) so browsers
+        // supporting the Web OTP API can auto-fill the one-time code.
+        'otp_domain' => env('OTP_DOMAIN'),
+
         'smsir' => [
             'key' => env('SMSIR_API_KEY'),
             'line_number' => env('SMSIR_LINE_NUMBER'),

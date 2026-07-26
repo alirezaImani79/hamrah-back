@@ -15,13 +15,31 @@ use App\Contracts\SmsSender;
  */
 class BulkOtpSmsSender implements OtpSmsSender
 {
-    public function __construct(private SmsSender $sender) {}
+    public function __construct(
+        private SmsSender $sender,
+        private string $domain = '',
+    ) {}
 
     /**
-     * Format the code as a plain message and send it via the bulk gateway.
+     * Build the OTP message and send it via the bulk gateway.
+     *
+     * When a domain is configured the message ends with an `@<host> #<code>`
+     * line so the browser's Web OTP API can offer to auto-fill the code.
      */
     public function sendCode(string $phoneNumber, string $code): void
     {
-        $this->sender->send($phoneNumber, "Your verification code is: {$code}");
+        $lines = [
+            'به همراه خوش آمدید',
+            "کد تأیید شما: {$code}",
+        ];
+
+        if ($this->domain !== '') {
+            // The Web OTP API only reads the final line, which must match the
+            // `@<host> #<code>` form and be preceded by a blank line.
+            $lines[] = '';
+            $lines[] = "@{$this->domain} #{$code}";
+        }
+
+        $this->sender->send($phoneNumber, implode("\n", $lines));
     }
 }
