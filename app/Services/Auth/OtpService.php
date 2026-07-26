@@ -3,9 +3,10 @@
 namespace App\Services\Auth;
 
 use App\Contracts\OtpSmsSender;
+use App\Exceptions\ApiException;
 use App\Models\OtpCode;
+use App\Support\ErrorCode;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class OtpService
 {
@@ -73,7 +74,7 @@ class OtpService
     /**
      * Prevent requesting codes faster than the configured cooldown.
      *
-     * @throws ValidationException
+     * @throws ApiException
      */
     private function ensureNotThrottled(string $phoneNumber): void
     {
@@ -89,9 +90,12 @@ class OtpService
             ->exists();
 
         if ($recentlyRequested) {
-            throw ValidationException::withMessages([
-                'phone_number' => ['Please wait before requesting another verification code.'],
-            ]);
+            throw new ApiException(
+                errorCode: ErrorCode::OtpRequestThrottled,
+                message: 'Please wait before requesting another verification code.',
+                errors: ['phone_number' => ['Please wait before requesting another verification code.']],
+                statusCode: 422,
+            );
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\RequestOtpRequest;
 use App\Http\Requests\Api\V1\Auth\VerifyOtpRequest;
@@ -9,9 +10,9 @@ use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 use App\Services\Auth\OtpService;
 use App\Support\ApiResponse;
+use App\Support\ErrorCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
@@ -31,8 +32,8 @@ class AuthController extends Controller
         ),
         responses: [
             new OA\Response(response: 200, description: 'Code sent', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccess')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 429, description: 'Too many requests', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`), or a code was requested within the cooldown window (`OTP_REQUEST_THROTTLED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 429, description: 'Too many requests (`TOO_MANY_REQUESTS`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function requestOtp(RequestOtpRequest $request, OtpService $otp): JsonResponse
@@ -62,7 +63,7 @@ class AuthController extends Controller
         ),
         responses: [
             new OA\Response(response: 200, description: 'Authenticated', content: new OA\JsonContent(ref: '#/components/schemas/AuthTokenResponse')),
-            new OA\Response(response: 422, description: 'Invalid or expired code', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`), or the code is invalid/expired/used up (`OTP_INVALID`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function verifyOtp(VerifyOtpRequest $request, OtpService $otp): JsonResponse
@@ -70,9 +71,12 @@ class AuthController extends Controller
         $phoneNumber = $request->validated('phone_number');
 
         if (! $otp->verify($phoneNumber, $request->validated('code'))) {
-            throw ValidationException::withMessages([
-                'code' => ['The provided code is invalid or has expired.'],
-            ]);
+            throw new ApiException(
+                errorCode: ErrorCode::OtpInvalid,
+                message: 'The provided code is invalid or has expired.',
+                errors: ['code' => ['The provided code is invalid or has expired.']],
+                statusCode: 422,
+            );
         }
 
         $user = User::firstOrCreate(['phone_number' => $phoneNumber]);
@@ -104,7 +108,7 @@ class AuthController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Current user', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function me(Request $request): JsonResponse
@@ -123,7 +127,7 @@ class AuthController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Logged out', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccess')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function logout(Request $request): JsonResponse

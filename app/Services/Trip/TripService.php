@@ -2,13 +2,14 @@
 
 namespace App\Services\Trip;
 
+use App\Exceptions\ApiException;
 use App\Jobs\SendTripUpdatedSms;
 use App\Models\Trip;
 use App\Models\User;
+use App\Support\ErrorCode;
 use App\Support\Geo\Distance;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
-use Illuminate\Validation\ValidationException;
 
 class TripService
 {
@@ -168,20 +169,27 @@ class TripService
     /**
      * Sign the given user up as a passenger on the trip.
      *
-     * @throws ValidationException When the trip is full or the user already joined.
+     * @throws ApiException When the user already joined ({@see ErrorCode::TripAlreadyJoined})
+     *                      or the trip is full ({@see ErrorCode::TripFull}).
      */
     public function addPassenger(Trip $trip, User $user): void
     {
         if ($trip->passengers()->whereKey($user->getKey())->exists()) {
-            throw ValidationException::withMessages([
-                'trip' => 'You have already joined this trip.',
-            ]);
+            throw new ApiException(
+                errorCode: ErrorCode::TripAlreadyJoined,
+                message: 'You have already joined this trip.',
+                errors: ['trip' => ['You have already joined this trip.']],
+                statusCode: 422,
+            );
         }
 
         if ($trip->passengers()->count() >= $trip->empty_seats) {
-            throw ValidationException::withMessages([
-                'trip' => 'This trip is already full.',
-            ]);
+            throw new ApiException(
+                errorCode: ErrorCode::TripFull,
+                message: 'This trip is already full.',
+                errors: ['trip' => ['This trip is already full.']],
+                statusCode: 422,
+            );
         }
 
         $trip->passengers()->attach($user);

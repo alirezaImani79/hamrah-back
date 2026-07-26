@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Identity;
 
 use App\Enums\IdentityVerificationStatus;
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Identity\SubmitIdentityVerificationRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Services\Identity\IdentityVerificationService;
 use App\Support\ApiResponse;
+use App\Support\ErrorCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -27,7 +29,7 @@ class IdentityVerificationController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Current status', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function status(Request $request): JsonResponse
@@ -55,9 +57,9 @@ class IdentityVerificationController extends Controller
         ),
         responses: [
             new OA\Response(response: 202, description: 'Submitted for verification', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 409, description: 'Verification already in progress or completed', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 409, description: 'Already verifying (`IDENTITY_VERIFICATION_IN_PROGRESS`) or already verified (`IDENTITY_ALREADY_VERIFIED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function submit(SubmitIdentityVerificationRequest $request): JsonResponse
@@ -65,11 +67,19 @@ class IdentityVerificationController extends Controller
         $user = $request->user();
 
         if ($user->identity_status === IdentityVerificationStatus::Verifying) {
-            abort(409, 'Your identity verification is already in progress.');
+            throw new ApiException(
+                errorCode: ErrorCode::IdentityVerificationInProgress,
+                message: 'Your identity verification is already in progress.',
+                statusCode: 409,
+            );
         }
 
         if ($user->identity_status === IdentityVerificationStatus::Verified) {
-            abort(409, 'Your identity has already been verified.');
+            throw new ApiException(
+                errorCode: ErrorCode::IdentityAlreadyVerified,
+                message: 'Your identity has already been verified.',
+                statusCode: 409,
+            );
         }
 
         $user = $this->identity->submit(
