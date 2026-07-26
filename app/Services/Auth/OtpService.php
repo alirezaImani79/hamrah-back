@@ -2,19 +2,20 @@
 
 namespace App\Services\Auth;
 
-use App\Contracts\SmsSender;
+use App\Contracts\OtpSmsSender;
 use App\Models\OtpCode;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class OtpService
 {
-    public function __construct(private SmsSender $smsSender) {}
+    public function __construct(private OtpSmsSender $otpSmsSender) {}
 
     /**
      * Generate a one-time code for the phone number, persist its hash, and
-     * dispatch it via the configured SMS sender. Returns the plain-text code
-     * (used only for local/test debugging — never persisted in clear text).
+     * dispatch it via the configured OTP sender (a transactional template).
+     * Returns the plain-text code (used only for local/test debugging — never
+     * persisted in clear text).
      */
     public function request(string $phoneNumber): string
     {
@@ -34,7 +35,7 @@ class OtpService
             'expires_at' => now()->addSeconds((int) config('otp.ttl')),
         ]);
 
-        $this->smsSender->send($phoneNumber, "Your verification code is: {$code}");
+        $this->otpSmsSender->sendCode($phoneNumber, $code);
 
         return $code;
     }

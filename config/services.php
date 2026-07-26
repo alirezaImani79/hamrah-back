@@ -42,6 +42,10 @@ return [
             'key' => env('SMSIR_API_KEY'),
             'line_number' => env('SMSIR_LINE_NUMBER'),
             'endpoint' => env('SMSIR_ENDPOINT', 'https://api.sms.ir/v1/send/bulk'),
+            // OTP codes are sent via a pre-approved transactional template.
+            'verify_endpoint' => env('SMSIR_VERIFY_ENDPOINT', 'https://api.sms.ir/v1/send/verify'),
+            'otp_template_id' => env('SMSIR_OTP_TEMPLATE_ID'),
+            'otp_parameter' => env('SMSIR_OTP_PARAMETER', 'Code'),
         ],
     ],
 
