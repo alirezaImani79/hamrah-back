@@ -82,7 +82,7 @@ class LocationController extends Controller
                     ],
                 ),
             ),
-            new OA\Response(response: 404, description: 'Province not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Province not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function cities(Province $province): JsonResponse

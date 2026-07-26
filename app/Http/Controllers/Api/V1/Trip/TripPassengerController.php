@@ -29,10 +29,10 @@ class TripPassengerController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Joined the trip', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 403, description: 'Cannot join (own trip or already departed)', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Trip full or already joined', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Cannot join, e.g. own trip or already departed (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Trip full (`TRIP_FULL`) or already joined (`TRIP_ALREADY_JOINED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function store(Request $request, string $trip): JsonResponse
@@ -59,9 +59,9 @@ class TripPassengerController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Left the trip', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccess')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 403, description: 'You are not a passenger on this trip', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'You are not a passenger on this trip (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function destroy(Request $request, string $trip): JsonResponse

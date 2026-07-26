@@ -31,7 +31,7 @@ class TripController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'List of trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function index(Request $request): JsonResponse
@@ -52,7 +52,7 @@ class TripController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'List of upcoming trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function current(Request $request): JsonResponse
@@ -73,7 +73,7 @@ class TripController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'List of past trips', content: new OA\JsonContent(ref: '#/components/schemas/TripCollectionResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function history(Request $request): JsonResponse
@@ -98,8 +98,8 @@ class TripController extends Controller
         ),
         responses: [
             new OA\Response(response: 200, description: 'Ranked matching trips', content: new OA\JsonContent(ref: '#/components/schemas/MatchedTripCollectionResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function match(MatchTripRequest $request): JsonResponse
@@ -124,8 +124,8 @@ class TripController extends Controller
         ),
         responses: [
             new OA\Response(response: 201, description: 'Trip created', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function store(StoreTripRequest $request): JsonResponse
@@ -149,9 +149,9 @@ class TripController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Trip details with driver, vehicle, and passengers', content: new OA\JsonContent(ref: '#/components/schemas/TripDetailResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 403, description: 'Forbidden', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function show(Request $request, string $trip): JsonResponse
@@ -186,10 +186,10 @@ class TripController extends Controller
         ),
         responses: [
             new OA\Response(response: 200, description: 'Trip updated', content: new OA\JsonContent(ref: '#/components/schemas/TripResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 403, description: 'Forbidden or trip already departed', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden, e.g. not the driver or the trip already departed (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function update(UpdateTripRequest $request, string $trip): JsonResponse
@@ -217,9 +217,9 @@ class TripController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Trip deleted', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccess')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 403, description: 'Forbidden', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Trip not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 403, description: 'Forbidden (`UNAUTHORIZED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Trip not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function destroy(Request $request, string $trip): JsonResponse

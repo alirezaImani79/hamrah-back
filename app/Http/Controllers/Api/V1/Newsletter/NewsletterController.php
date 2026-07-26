@@ -25,7 +25,7 @@ class NewsletterController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Current status', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function status(Request $request): JsonResponse
@@ -44,7 +44,7 @@ class NewsletterController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Subscribed', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function subscribe(Request $request): JsonResponse
@@ -65,7 +65,7 @@ class NewsletterController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Unsubscribed', content: new OA\JsonContent(ref: '#/components/schemas/UserResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function unsubscribe(Request $request): JsonResponse

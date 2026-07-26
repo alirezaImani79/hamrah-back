@@ -28,7 +28,7 @@ class VehicleController extends Controller
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(response: 200, description: 'List of vehicles', content: new OA\JsonContent(ref: '#/components/schemas/VehicleCollectionResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function index(Request $request): JsonResponse
@@ -53,8 +53,8 @@ class VehicleController extends Controller
         ),
         responses: [
             new OA\Response(response: 201, description: 'Vehicle created', content: new OA\JsonContent(ref: '#/components/schemas/VehicleResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function store(StoreVehicleRequest $request): JsonResponse
@@ -78,8 +78,8 @@ class VehicleController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Vehicle details', content: new OA\JsonContent(ref: '#/components/schemas/VehicleResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Vehicle not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Vehicle not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function show(Request $request, string $vehicle): JsonResponse
@@ -105,9 +105,9 @@ class VehicleController extends Controller
         ),
         responses: [
             new OA\Response(response: 200, description: 'Vehicle updated', content: new OA\JsonContent(ref: '#/components/schemas/VehicleResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Vehicle not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Vehicle not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 422, description: 'Validation error (`VALIDATION_FAILED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function update(UpdateVehicleRequest $request, string $vehicle): JsonResponse
@@ -131,8 +131,8 @@ class VehicleController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Vehicle deleted', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccess')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
-            new OA\Response(response: 404, description: 'Vehicle not found', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 401, description: 'Unauthenticated (`UNAUTHENTICATED`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
+            new OA\Response(response: 404, description: 'Vehicle not found (`NOT_FOUND`).', content: new OA\JsonContent(ref: '#/components/schemas/ApiError')),
         ],
     )]
     public function destroy(Request $request, string $vehicle): JsonResponse
